@@ -1,0 +1,70 @@
+#include <TridentTD_LineNotify.h>
+
+#define SSID        "YOU"  // ชื่อไวไฟ
+#define PASSWORD    "๋12345678"  // รหัสไวไฟ
+#define LINE_TOKEN  "J2WdQaoJQGgaOFoBnsjS4l746y3uY74xMwtMwsaRkB1"
+
+int Sensor_Level1 = D3;
+int Sensor_Level2 = D4;
+
+int Siern_IN2 = D5;
+int state = 1;
+void setup() {
+
+  Serial.begin(115200);
+  pinMode(Siern_IN2, OUTPUT);
+  digitalWrite(Siern_IN2, LOW);
+  pinMode(Sensor_Level1, INPUT);
+  pinMode(Sensor_Level2, INPUT);
+
+  Serial.println();
+  Serial.println(LINE.getVersion());
+
+  WiFi.begin(SSID, PASSWORD);
+  Serial.printf("WiFi connecting to %s\n",  SSID);
+  while (WiFi.status() != WL_CONNECTED) {
+    Serial.print(".");
+    delay(400);
+  }
+  Serial.printf("\nWiFi connected\nIP : ");
+  Serial.println(WiFi.localIP());
+
+  // กำหนด Line Token
+  LINE.setToken(LINE_TOKEN);
+  delay(1000);
+
+}
+
+void loop()
+{
+  int Sensor_State1 = digitalRead(Sensor_Level1);
+  int Sensor_State2 = digitalRead(Sensor_Level2);
+  Serial.print("ระดับเซ็นเซอร์ 1 :");
+  Serial.print(Sensor_State1);
+  Serial.print("  ระดับเซ็นเซอร์ 2 :");
+  Serial.print(Sensor_State2);
+  Serial.print("  state :");
+  Serial.println(state);
+
+  if (Sensor_State1 == 0 && Sensor_State2 == 1 && state == 1) {
+    Serial.println("ระดับน้ำถึงเซ็นเซอร์ตัวที่ 1 แล้ว");
+    LINE.notify("ระดับถึงเซ็นเซอร์ตัวที่ 1 แล้ว เตรียมตัวขนของจ้า");
+    delay(1000);
+    LINE.notify("ระดับถึงเซ็นเซอร์ตัวที่ 1 แล้ว เตรียมตัวขนของจ้า");
+    delay(1000);
+    state = 2;
+  }
+  else if (Sensor_State1 == 0 && Sensor_State2 == 0) {
+    Serial.println("ระดับน้ำถึงเซ็นเซอร์ตัวที่ 2 แล้ว");
+    LINE.notify("น้ำท่วมแล้วจ้าาาาา");
+    digitalWrite(Siern_IN2, HIGH);
+    delay(1000);
+    state = 1;
+  }
+  else{
+    Serial.println("สถานการณ์ปกติ");
+    digitalWrite(Siern_IN2, LOW);
+  }
+
+  delay(100);
+}
